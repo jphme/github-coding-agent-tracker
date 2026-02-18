@@ -3,7 +3,14 @@ name: Update coding agent data
 on:
   schedule:
     - cron: "0 6 * * *" # daily at 6am UTC
-  workflow_dispatch: # manual trigger
+  workflow_dispatch:
+    inputs:
+      start_date:
+        description: "Start date (YYYY-MM-DD), defaults to yesterday"
+        required: false
+      end_date:
+        description: "End date (YYYY-MM-DD), defaults to start_date"
+        required: false
 
 jobs:
   update:
@@ -17,8 +24,16 @@ jobs:
 
       - run: bun install
 
-      - name: Fetch yesterday's data
-        run: bun run src/fetch.ts $(date -d "yesterday" +%Y-%m-%d)
+      - name: Fetch data
+        run: |
+          START="${{ inputs.start_date }}"
+          END="${{ inputs.end_date }}"
+          START="${START:-$(date -d 'yesterday' +%Y-%m-%d)}"
+          if [ -n "$END" ]; then
+            bun run src/fetch.ts "$START" "$END"
+          else
+            bun run src/fetch.ts "$START"
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -33,5 +48,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/ chart.png README.md
-          git diff --staged --quiet || git commit -m "data: $(date -d 'yesterday' +%Y-%m-%d)"
+          git diff --staged --quiet || git commit -m "data update"
           git push
