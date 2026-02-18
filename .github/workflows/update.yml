@@ -1,0 +1,37 @@
+name: Update coding agent data
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # daily at 6am UTC
+  workflow_dispatch: # manual trigger
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - run: bun install
+
+      - name: Fetch yesterday's data
+        run: bun run src/fetch.ts $(date -d "yesterday" +%Y-%m-%d)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate chart
+        run: bun run src/chart.ts
+
+      - name: Format
+        run: bun run format
+
+      - name: Commit and push
+        run: |
+          git config user.name "powerset-coding-agent-monitor[bot]"
+          git config user.email "coding-agent-monitor[bot]@powerset.co"
+          git add data/ chart.png README.md
+          git diff --staged --quiet || git commit -m "data: $(date -d 'yesterday' +%Y-%m-%d)"
+          git push

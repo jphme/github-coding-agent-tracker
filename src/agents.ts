@@ -1,0 +1,54 @@
+// Agent definitions for GitHub commit search queries.
+//
+// There are two detection patterns, depending on how each agent makes commits:
+//
+// 1. "author:bot-name[bot]" — The agent operates as a GitHub App and IS the
+//    commit author. These are precise with essentially no false positives.
+//
+// 2. Bare text search (email/domain) — The agent commits under the human user's
+//    identity but adds a Co-Authored-By trailer to the commit message. Bare text
+//    queries search the commit message body and match these trailers.
+
+export interface Agent {
+  name: string; // display name, e.g. "Claude Code"
+  key: string; // CSV identifier, e.g. "claude"
+  query: string; // GitHub search query fragment
+}
+
+export const AGENTS: Agent[] = [
+  // Co-Authored-By trailer: "Co-authored-by: Claude <noreply@anthropic.com>"
+  // Catches CLI (Claude Code) usage. Misses web-authored commits where the
+  // email is only in git metadata, but that's a small subset.
+  { name: "Claude Code", key: "claude", query: "noreply@anthropic.com" },
+
+  // GitHub App bot — commit author is copilot-swe-agent[bot]
+  { name: "GitHub Copilot", key: "copilot", query: "author:copilot-swe-agent[bot]" },
+
+  // GitHub App bot — commit author is devin-ai-integration[bot]
+  { name: "Devin AI", key: "devin", query: "author:devin-ai-integration[bot]" },
+
+  // Co-Authored-By trailer contains "noreply@aider.chat". Older versions used
+  // an "(aider)" author name suffix in git metadata (not searchable via bare
+  // text), but most active usage is on recent versions.
+  { name: "Aider", key: "aider", query: "aider.chat" },
+
+  // GitHub App bot — commit author is chatgpt-codex-connector[bot] (cloud).
+  // Codex CLI commits are invisible (no markers), but cloud is the main product.
+  { name: "OpenAI Codex", key: "codex", query: "author:chatgpt-codex-connector[bot]" },
+
+  // Co-Authored-By trailer: "Co-authored-by: opencode <noreply@opencode.ai>"
+  { name: "OpenCode", key: "opencode", query: "noreply@opencode.ai" },
+
+  // Cursor has two agent modes with different commit signatures:
+  //
+  // Editor Agent (in-IDE): adds Co-Authored-By trailer with cursoragent@cursor.com
+  { name: "Cursor (Editor)", key: "cursor_editor", query: "cursoragent@cursor.com" },
+  // Background Agent (remote VM): commits as "Cursor Agent <agent@cursor.com>"
+  { name: "Cursor (Background)", key: "cursor_bg", query: "author-email:agent@cursor.com" },
+
+  // GitHub App bot — commit author is google-labs-jules[bot]
+  { name: "Google Jules", key: "jules", query: "author:google-labs-jules[bot]" },
+
+  // GitHub App bot — commit author is amazon-q-developer[bot]
+  { name: "Amazon Q", key: "amazonq", query: "author:amazon-q-developer[bot]" },
+];

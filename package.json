@@ -1,0 +1,24 @@
+{
+  "name": "github-coding-agents",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "fetch": "bun run src/fetch.ts",
+    "chart": "bun run src/chart.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@octokit/plugin-throttling": "^9.4.0",
+    "octokit": "^4.1.2",
+    "sharp": "^0.33.5",
+    "vega": "^5.30.0",
+    "vega-lite": "^5.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.3",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3"
+  }
+}
