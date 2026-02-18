@@ -9,7 +9,7 @@ The following chart and table are updated automatically by a GitHub Action runni
 
 | Agent          | % of public commits |
 | -------------- | ------------------- |
-| Claude Code    | 2.87%               |
+| Claude Code    | 2.88%               |
 | Cursor         | 0.45%               |
 | GitHub Copilot | 0.36%               |
 | Google Jules   | 0.08%               |
