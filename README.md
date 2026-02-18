@@ -1,6 +1,7 @@
 # GitHub Coding Agent Monitor
 
 A public, auditable log of AI coding agent commit counts on GitHub over time.
+The following chart and table are updated automatically by a GitHub Action running on a daily schedule.
 
 ![AI Coding Agent Commits](chart.png)
 
@@ -8,9 +9,9 @@ A public, auditable log of AI coding agent commit counts on GitHub over time.
 
 | Agent          | % of public commits |
 | -------------- | ------------------- |
-| Claude Code    | 2.87%               |
-| Cursor         | 0.45%               |
-| GitHub Copilot | 0.36%               |
+| Claude Code    | 2.92%               |
+| Cursor         | 0.46%               |
+| GitHub Copilot | 0.37%               |
 | Google Jules   | 0.08%               |
 | Devin AI       | 0.01%               |
 | Aider          | 0.00%               |
@@ -37,7 +38,7 @@ A public, auditable log of AI coding agent commit counts on GitHub over time.
 
 ## How It Works
 
-A daily GitHub Action uses the [GitHub Search API](https://docs.github.com/en/rest/search/search#search-commits) to count public commits matching each agent's signature. Total public commits are counted in 4x 6-hour windows (to stay under the 1M `total_count` ceiling) and summed.
+A daily GitHub Action uses the [GitHub Search API](https://docs.github.com/en/rest/search/search#search-commits) to count public commits matching each agent's signature. Total public commits are counted in 24x 1-hour windows (to stay under the 1M `total_count` ceiling) and summed.
 
 Results are stored as flat CSVs in `data/YYYY-MM-DD.csv` and committed back to this repo.
 
@@ -74,7 +75,7 @@ bun run src/chart.ts
 
 ## Backfill
 
-At ~30 requests/min (GitHub search API rate limit), each day requires 14 queries (4 time windows + 10 agents), so backfilling runs at ~2 days/minute (~3 hours for a full year).
+At ~30 requests/min (GitHub search API rate limit), each day requires 34 queries (24 hourly windows + 10 agents), so backfilling runs at ~1 day/minute (~6 hours for a full year).
 
 ```bash
 GITHUB_TOKEN=ghp_... bun run src/fetch.ts 2025-02-17 2026-02-15
@@ -85,7 +86,7 @@ GITHUB_TOKEN=ghp_... bun run src/fetch.ts 2025-02-17 2026-02-15
 - GitHub's `total_count` for search results is an **approximation** and may vary between requests
 - Agents that allow users to opt out of attribution may be undercounted
 - Only commits on default branches are indexed by GitHub's search
-- The total commit count uses 6-hour windows to avoid hitting the 1M result ceiling
+- The total commit count uses 1-hour windows to avoid hitting the 1M result ceiling
 
 ## License
 
