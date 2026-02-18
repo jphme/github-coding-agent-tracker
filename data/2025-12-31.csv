@@ -1,0 +1,12 @@
+date,query,count
+2025-12-31,total,3935594
+2025-12-31,claude,69412
+2025-12-31,copilot,11113
+2025-12-31,devin,186
+2025-12-31,aider,81
+2025-12-31,codex,0
+2025-12-31,opencode,23
+2025-12-31,cursor_editor,153
+2025-12-31,cursor_bg,0
+2025-12-31,jules,2873
+2025-12-31,amazonq,4
