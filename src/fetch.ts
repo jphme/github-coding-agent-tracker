@@ -12,14 +12,16 @@
 
 import { Octokit } from "octokit";
 import { throttling } from "@octokit/plugin-throttling";
+import { retry } from "@octokit/plugin-retry";
 import { AGENTS } from "./agents.js";
 import { mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
 
-const ThrottledOctokit = Octokit.plugin(throttling);
+const OctokitWithPlugins = Octokit.plugin(throttling, retry);
 
-const octokit = new ThrottledOctokit({
+const octokit = new OctokitWithPlugins({
   auth: process.env.GITHUB_TOKEN,
+  retry: { doNotRetry: [404, 422] },
   throttle: {
     onRateLimit: (retryAfter: number, options: any, octokit: any, retryCount: number) => {
       octokit.log.warn(`Rate limit hit for ${options.method} ${options.url}`);
