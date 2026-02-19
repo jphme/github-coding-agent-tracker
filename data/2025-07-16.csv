@@ -1,12 +1,12 @@
 date,query,count
-2025-07-16,total,6417880
+2025-07-16,total,6417835
 2025-07-16,claude,14097
 2025-07-16,copilot,2038
 2025-07-16,devin,489
 2025-07-16,aider,584
 2025-07-16,codex,0
 2025-07-16,opencode,81
-2025-07-16,cursor_editor,411
+2025-07-16,cursor_editor,413
 2025-07-16,cursor_bg,0
 2025-07-16,jules,1577
 2025-07-16,amazonq,1
