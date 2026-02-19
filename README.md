@@ -11,7 +11,7 @@ The following chart and table are updated automatically by a GitHub Action runni
 | -------------- | ------------------- |
 | Claude Code    | 2.88%               |
 | Cursor         | 0.45%               |
-| GitHub Copilot | 0.36%               |
+| GitHub Copilot | 0.35%               |
 | Google Jules   | 0.08%               |
 | Devin AI       | 0.01%               |
 | Aider          | 0.00%               |
