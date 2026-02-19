@@ -61,12 +61,6 @@ function loadData(): DataPoint[] {
 
 // Build a Vega-Lite spec for a single area chart: x=date, y=combined agent %.
 function buildSpec(data: DataPoint[]): vegaLite.TopLevelSpec {
-  // Pick x-axis format based on date range span
-  const dates = data.map((d) => d.date);
-  const spanMs = new Date(dates[dates.length - 1]).getTime() - new Date(dates[0]).getTime();
-  const spanDays = spanMs / (1000 * 60 * 60 * 24);
-  const dateFormat = spanDays < 60 ? "%b %d" : "%b %Y";
-
   return {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
     title: "AI Coding Agent Commits on GitHub (% of public commits)",
@@ -82,7 +76,7 @@ function buildSpec(data: DataPoint[]): vegaLite.TopLevelSpec {
           x: {
             field: "date",
             type: "temporal",
-            axis: { title: null, format: dateFormat, labelAngle: -45 },
+            axis: { title: null, format: "%b %Y", labelAngle: -45, tickCount: "month" },
           },
           y: {
             field: "percentage",
@@ -156,13 +150,19 @@ function generateTable() {
     })
     .sort((a, b) => b[1] - a[1]);
 
-  const header = `| Agent | % of public commits |`;
-  const separator = `|-------|---------------------|`;
+  const maxPct = sortedAgents[0]?.[1] ?? 1;
+  const barMaxLen = 20;
+
+  const header = `| Agent | | % |`;
+  const separator = `|-------|---|---|`;
   const rows = sortedAgents.map(([agent, avgPct]) => {
-    return `| ${agent} | ${avgPct.toFixed(2)}% |`;
+    const barLen = Math.round((avgPct / maxPct) * barMaxLen);
+    const bar = "█".repeat(barLen);
+    return `| ${agent} | ${bar} | ${avgPct.toFixed(2)}% |`;
   });
 
-  const table = [header, separator, ...rows].join("\n");
+  const caption = `10-day rolling average, as a % of all public commits on GitHub.`;
+  const table = [caption, "", header, separator, ...rows].join("\n");
 
   const readme = readFileSync("README.md", "utf-8");
   const updated = readme.replace(

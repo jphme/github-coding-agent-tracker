@@ -1,27 +1,35 @@
 # GitHub Coding Agent Monitor
 
-A public, auditable log of AI coding agent commit counts on GitHub over time.
+A public, auditable log of AI coding agent commit counts on public GitHub repos over time.
 The following chart and table are updated automatically by a GitHub Action running on a daily schedule.
 
 ![AI Coding Agent Commits](chart.png)
 
 <!-- recent-table-start -->
 
-| Agent          | % of public commits |
-| -------------- | ------------------- |
-| Claude Code    | 2.88%               |
-| Cursor         | 0.45%               |
-| GitHub Copilot | 0.35%               |
-| Google Jules   | 0.08%               |
-| Devin AI       | 0.01%               |
-| Aider          | 0.00%               |
-| OpenCode       | 0.00%               |
-| Amazon Q       | 0.00%               |
-| OpenAI Codex   | 0.00%               |
+10-day rolling average, as a % of all public commits on GitHub.
+
+| Agent          |                      | %     |
+| -------------- | -------------------- | ----- |
+| Claude Code    | ████████████████████ | 2.88% |
+| Cursor         | ███                  | 0.45% |
+| GitHub Copilot | ██                   | 0.35% |
+| Google Jules   | █                    | 0.08% |
+| Devin AI       |                      | 0.01% |
+| Aider          |                      | 0.00% |
+| OpenCode       |                      | 0.00% |
+| Amazon Q       |                      | 0.00% |
+| OpenAI Codex   |                      | 0.00% |
 
 <!-- recent-table-end -->
 
-## Detected Agents
+## How It Works
+
+A daily GitHub Action uses the [GitHub Search API](https://docs.github.com/en/rest/search/search#search-commits) to count new public commits matching each coding agent's signature. Total public commits are counted in 24x 1-hour windows and summed.
+
+Results are stored as flat CSVs in `data/YYYY-MM-DD.csv` and committed back to this repo, along wih an updated chart.
+
+Specific coding agents are detected using the following search queries:
 
 | Agent               | Search Query                          |
 | ------------------- | ------------------------------------- |
@@ -36,13 +44,22 @@ The following chart and table are updated automatically by a GitHub Action runni
 | Google Jules        | `author:google-labs-jules[bot]`       |
 | Amazon Q            | `author:amazon-q-developer[bot]`      |
 
-## How It Works
+### Caveats
 
-A daily GitHub Action uses the [GitHub Search API](https://docs.github.com/en/rest/search/search#search-commits) to count public commits matching each agent's signature. Total public commits are counted in 24x 1-hour windows (to stay under the 1M `total_count` ceiling) and summed.
+Given the methodology described above, there are some implicit limits to this data:
 
-Results are stored as flat CSVs in `data/YYYY-MM-DD.csv` and committed back to this repo.
+1. Only public GitHub activity is monitored, private repos are not accessible by these queries.
+2. Only commits where a coding agent has left a "signature" can be detected (e.g. `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>`).
+3. Only commits on default branches are indexed by GitHub's search.
+
+Some coding agents may be more prevalent in private repos vs public repos. Some may not show up much in this data because they don't leave a "signature."
+As such, Be wary of what you conclude from this data.
+
+In general, the data is meant to highlight broad trends around coding agent adoption overall.
 
 ## Query the Data with DuckDB
+
+Since the data lives in this repo in CSV files, you can use [DuckDB](https://duckdb.org/) to query it.
 
 ```sql
 SELECT * FROM read_csv('data/*.csv');
@@ -80,14 +97,3 @@ At ~30 requests/min (GitHub search API rate limit), each day requires 34 queries
 ```bash
 GITHUB_TOKEN=ghp_... bun run src/fetch.ts 2025-02-17 2026-02-15
 ```
-
-## Caveats
-
-- GitHub's `total_count` for search results is an **approximation** and may vary between requests
-- Agents that allow users to opt out of attribution may be undercounted
-- Only commits on default branches are indexed by GitHub's search
-- The total commit count uses 1-hour windows to avoid hitting the 1M result ceiling
-
-## License
-
-MIT
