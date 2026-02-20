@@ -50,5 +50,5 @@ jobs:
           git add data/ chart.png README.md
           git diff --staged --quiet || git commit -m "data update"
           git checkout -- .
-          git pull --rebase
+          git pull --rebase -X theirs
           git push
