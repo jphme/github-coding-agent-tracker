@@ -27,7 +27,7 @@ The following chart and table are updated automatically by a GitHub Action runni
 
 A daily GitHub Action uses the [GitHub Search API](https://docs.github.com/en/rest/search/search#search-commits) to count new public commits matching each coding agent's signature. Total public commits are counted in 24x 1-hour windows and summed.
 
-Results are stored as flat CSVs in `data/YYYY-MM-DD.csv` and committed back to this repo, along wih an updated chart.
+Results are stored as flat CSVs in `data/YYYY-MM-DD.csv` and committed back to this repo, along with an updated chart.
 
 Specific coding agents are detected using the following search queries:
 
@@ -53,7 +53,7 @@ Given the methodology described above, there are some implicit limits to this da
 3. Only commits on default branches are indexed by GitHub's search.
 
 Some coding agents may be more prevalent in private repos vs public repos. Some may not show up much in this data because they don't leave a "signature."
-As such, Be wary of what you conclude from this data.
+As such, be wary of what you conclude from this data.
 
 In general, the data is meant to highlight broad trends around coding agent adoption overall.
 
