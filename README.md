@@ -11,15 +11,15 @@ The following chart and table are updated automatically by a GitHub Action runni
 
 | Agent          |                      | %     |
 | -------------- | -------------------- | ----- |
-| Claude Code    | ████████████████████ | 2.94% |
+| Claude Code    | ████████████████████ | 2.95% |
 | Cursor         | ███                  | 0.45% |
-| GitHub Copilot | ██                   | 0.35% |
+| GitHub Copilot | ██                   | 0.33% |
 | Google Jules   | █                    | 0.08% |
 | Devin AI       |                      | 0.01% |
 | Aider          |                      | 0.00% |
 | OpenCode       |                      | 0.00% |
-| Amazon Q       |                      | 0.00% |
 | OpenAI Codex   |                      | 0.00% |
+| Amazon Q       |                      | 0.00% |
 
 <!-- recent-table-end -->
 
