@@ -7,22 +7,28 @@ The following chart and table are updated automatically by a GitHub Action runni
 
 <!-- recent-table-start -->
 
-Monthly average, as a % of all public commits on GitHub.
+10-day rolling average, as a % of all public commits on GitHub of the top 3 coding agents (by detected commit count).
 
-| Agent          | Jan 25    | Feb 25    | Mar 25    | Apr 25    | May 25    | Jun 25    | Jul 25    | Aug 25    | Sep 25    | Oct 25    | Nov 25    | Dec 25    | Jan 26    | Feb 26    |
-| -------------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- |
-| Claude Code    | -         | -         | 0.02%     | 0.01%     | 0.04%     | 0.23%     | 0.39%     | 0.49%     | 0.43%     | 0.72%     | 0.83%     | 1.13%     | 2.08%     | 3.01%     |
-| Cursor         | -         | -         | -         | -         | -         | -         | 0.01%     | 0.01%     | 0.01%     | 0.01%     | -         | -         | 0.02%     | 0.42%     |
-| GitHub Copilot | -         | -         | -         | -         | 0.01%     | 0.02%     | 0.05%     | 0.09%     | 0.11%     | 0.19%     | 0.26%     | 0.30%     | 0.31%     | 0.35%     |
-| Google Jules   | -         | -         | -         | -         | 0.02%     | 0.06%     | 0.03%     | 0.06%     | 0.05%     | 0.04%     | 0.04%     | 0.06%     | 0.08%     | 0.08%     |
-| Devin AI       | 0.01%     | 0.01%     | 0.01%     | 0.01%     | 0.01%     | 0.01%     | 0.01%     | 0.01%     | -         | 0.01%     | 0.01%     | 0.01%     | 0.01%     | 0.01%     |
-| Aider          | -         | -         | -         | -         | -         | -         | 0.01%     | 0.01%     | 0.01%     | 0.01%     | 0.01%     | -         | -         | -         |
-| OpenCode       | -         | -         | -         | -         | -         | 0.01%     | -         | -         | -         | -         | -         | -         | -         | -         |
-| Amazon Q       | -         | -         | -         | -         | -         | -         | -         | -         | -         | -         | -         | -         | -         | -         |
-| OpenAI Codex   | -         | -         | -         | -         | -         | -         | -         | -         | -         | -         | -         | -         | -         | -         |
-| **All Agents** | **0.01%** | **0.01%** | **0.03%** | **0.03%** | **0.08%** | **0.33%** | **0.51%** | **0.67%** | **0.60%** | **0.97%** | **1.15%** | **1.50%** | **2.50%** | **3.87%** |
+| Agent          |                      | %     |
+| -------------- | -------------------- | ----- |
+| Claude Code    | ████████████████████ | 2.89% |
+| Cursor         | ███                  | 0.42% |
+| GitHub Copilot | ██                   | 0.29% |
 
 <!-- recent-table-end -->
+
+## Caveats
+
+Given the methodology described below, there are some implicit limits to this data:
+
+1. Only public GitHub activity is monitored, private repos are not accessible by the queries used.
+2. Only commits where a coding agent has left a "signature" can be detected (e.g. `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>`).
+3. Only commits on default branches are indexed by GitHub's search.
+
+Some coding agents may be more prevalent in private repos vs public repos. Some may not show up much in this data because they don't leave a "signature."
+As such, be wary of what you conclude from this data.
+
+In general, the data is meant to highlight broad trends around coding agent adoption overall.
 
 ## How It Works
 
@@ -44,19 +50,6 @@ Specific coding agents are detected using the following search queries:
 | Cursor (Background) | `author-email:agent@cursor.com`       |
 | Google Jules        | `author:google-labs-jules[bot]`       |
 | Amazon Q            | `author:amazon-q-developer[bot]`      |
-
-### Caveats
-
-Given the methodology described above, there are some implicit limits to this data:
-
-1. Only public GitHub activity is monitored, private repos are not accessible by these queries.
-2. Only commits where a coding agent has left a "signature" can be detected (e.g. `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>`).
-3. Only commits on default branches are indexed by GitHub's search.
-
-Some coding agents may be more prevalent in private repos vs public repos. Some may not show up much in this data because they don't leave a "signature."
-As such, be wary of what you conclude from this data.
-
-In general, the data is meant to highlight broad trends around coding agent adoption overall.
 
 ## Query the Data with DuckDB
 
