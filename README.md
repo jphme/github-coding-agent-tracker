@@ -30,6 +30,8 @@ As such, be wary of what you conclude from this data.
 
 In general, the data is meant to highlight broad trends around coding agent adoption overall.
 
+We'd welcome more companies and developers to leave signatures in their commits so we can track this for the community. Additionally, we'd welcome any contributions to this repo to improve how data is collected, additional analysis, or other improvements.
+
 ## How It Works
 
 A daily GitHub Action uses the [GitHub Search API](https://docs.github.com/en/rest/search/search#search-commits) to count new public commits matching each coding agent's signature. Total public commits are counted in 24x 1-hour windows and summed.
