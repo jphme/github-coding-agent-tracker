@@ -109,8 +109,8 @@ function buildSpec(data: DataPoint[]): vegaLite.TopLevelSpec {
   } as vegaLite.TopLevelSpec;
 }
 
-// Build a markdown table showing each agent's % of all public commits over the
-// last 10 days, inject into README.md.
+// Build a markdown table showing the top 3 agents by % of all public commits
+// over the last 10 days, inject into README.md.
 function generateTable() {
   const files = globSync("data/*.csv");
   const perAgent = new Map<string, Map<string, number>>(); // agent -> date -> pct
@@ -142,13 +142,14 @@ function generateTable() {
 
   const last10 = [...allDates].sort().slice(-10);
 
-  // Average each agent's daily percentage over the last 10 days
+  // Average each agent's daily percentage over the last 10 days, take top 3
   const sortedAgents = [...perAgent.entries()]
     .map(([agent, byDate]) => {
       const pcts = last10.map((d) => byDate.get(d) ?? 0);
       return [agent, pcts.reduce((a, b) => a + b, 0) / pcts.length] as const;
     })
-    .sort((a, b) => b[1] - a[1]);
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
 
   const maxPct = sortedAgents[0]?.[1] ?? 1;
   const barMaxLen = 20;
@@ -157,11 +158,11 @@ function generateTable() {
   const separator = `|-------|---|---|`;
   const rows = sortedAgents.map(([agent, avgPct]) => {
     const barLen = Math.round((avgPct / maxPct) * barMaxLen);
-    const bar = "█".repeat(barLen);
+    const bar = "\u2588".repeat(barLen);
     return `| ${agent} | ${bar} | ${avgPct.toFixed(2)}% |`;
   });
 
-  const caption = `10-day rolling average, as a % of all public commits on GitHub.`;
+  const caption = `10-day rolling average, as a % of all public commits on GitHub of the top 3 coding agents (by detected commit count).`;
   const table = [caption, "", header, separator, ...rows].join("\n");
 
   const readme = readFileSync("README.md", "utf-8");
@@ -170,7 +171,9 @@ function generateTable() {
     `<!-- recent-table-start -->\n${table}\n<!-- recent-table-end -->`,
   );
   writeFileSync("README.md", updated);
-  console.log(`Updated README.md with ${last10.length}-day table (${sortedAgents.length} agents)`);
+  console.log(
+    `Updated README.md with ${last10.length}-day table (top ${sortedAgents.length} agents)`,
+  );
 }
 
 async function main() {

@@ -7,21 +7,28 @@ The following chart and table are updated automatically by a GitHub Action runni
 
 <!-- recent-table-start -->
 
-10-day rolling average, as a % of all public commits on GitHub.
+10-day rolling average, as a % of all public commits on GitHub of the top 3 coding agents (by detected commit count).
 
 | Agent          |                      | %     |
 | -------------- | -------------------- | ----- |
 | Claude Code    | ████████████████████ | 2.89% |
 | Cursor         | ███                  | 0.42% |
 | GitHub Copilot | ██                   | 0.29% |
-| Google Jules   |                      | 0.07% |
-| Devin AI       |                      | 0.01% |
-| Aider          |                      | 0.00% |
-| OpenCode       |                      | 0.00% |
-| OpenAI Codex   |                      | 0.00% |
-| Amazon Q       |                      | 0.00% |
 
 <!-- recent-table-end -->
+
+## Caveats
+
+Given the methodology described below, there are some implicit limits to this data:
+
+1. Only public GitHub activity is monitored, private repos are not accessible by the queries used.
+2. Only commits where a coding agent has left a "signature" can be detected (e.g. `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>`).
+3. Only commits on default branches are indexed by GitHub's search.
+
+Some coding agents may be more prevalent in private repos vs public repos. Some may not show up much in this data because they don't leave a "signature."
+As such, be wary of what you conclude from this data.
+
+In general, the data is meant to highlight broad trends around coding agent adoption overall.
 
 ## How It Works
 
@@ -43,19 +50,6 @@ Specific coding agents are detected using the following search queries:
 | Cursor (Background) | `author-email:agent@cursor.com`       |
 | Google Jules        | `author:google-labs-jules[bot]`       |
 | Amazon Q            | `author:amazon-q-developer[bot]`      |
-
-### Caveats
-
-Given the methodology described above, there are some implicit limits to this data:
-
-1. Only public GitHub activity is monitored, private repos are not accessible by these queries.
-2. Only commits where a coding agent has left a "signature" can be detected (e.g. `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>`).
-3. Only commits on default branches are indexed by GitHub's search.
-
-Some coding agents may be more prevalent in private repos vs public repos. Some may not show up much in this data because they don't leave a "signature."
-As such, be wary of what you conclude from this data.
-
-In general, the data is meant to highlight broad trends around coding agent adoption overall.
 
 ## Query the Data with DuckDB
 
