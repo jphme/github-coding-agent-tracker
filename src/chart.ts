@@ -109,12 +109,17 @@ function buildSpec(data: DataPoint[]): vegaLite.TopLevelSpec {
   } as vegaLite.TopLevelSpec;
 }
 
-// Build a markdown table showing each agent's % of all public commits over the
-// last 10 days, inject into README.md.
+// Build a markdown table showing each agent's monthly average % of all public
+// commits across the full data history, inject into README.md.
 function generateTable() {
   const files = globSync("data/*.csv");
-  const perAgent = new Map<string, Map<string, number>>(); // agent -> date -> pct
+  // agent -> date -> pct
+  const perAgent = new Map<string, Map<string, number>>();
+  // date -> combined agent pct
+  const combinedByDate = new Map<string, number>();
   const allDates = new Set<string>();
+
+  const agentKeys = CHART_AGENTS.flatMap((a) => a.keys);
 
   for (const file of files) {
     const content = readFileSync(file, "utf-8");
@@ -129,6 +134,9 @@ function generateTable() {
     if (!total || total === 0) continue;
     allDates.add(date);
 
+    const agentSum = agentKeys.reduce((sum, k) => sum + (rows.get(k) ?? 0), 0);
+    combinedByDate.set(date, (agentSum / total) * 100);
+
     for (const agent of CHART_AGENTS) {
       const count = agent.keys.reduce((sum, k) => sum + (rows.get(k) ?? 0), 0);
       let byDate = perAgent.get(agent.name);
@@ -140,29 +148,63 @@ function generateTable() {
     }
   }
 
-  const last10 = [...allDates].sort().slice(-10);
+  // Group dates by month (YYYY-MM)
+  const sortedDates = [...allDates].sort();
+  const months = [...new Set(sortedDates.map((d) => d.slice(0, 7)))].sort();
 
-  // Average each agent's daily percentage over the last 10 days
+  // Sort agents by their most recent month's average (descending)
+  const lastMonth = months[months.length - 1];
+  const lastMonthDates = sortedDates.filter((d) => d.startsWith(lastMonth));
   const sortedAgents = [...perAgent.entries()]
     .map(([agent, byDate]) => {
-      const pcts = last10.map((d) => byDate.get(d) ?? 0);
-      return [agent, pcts.reduce((a, b) => a + b, 0) / pcts.length] as const;
+      const avg =
+        lastMonthDates.reduce((sum, d) => sum + (byDate.get(d) ?? 0), 0) / lastMonthDates.length;
+      return { agent, byDate, lastAvg: avg };
     })
-    .sort((a, b) => b[1] - a[1]);
+    .sort((a, b) => b.lastAvg - a.lastAvg);
 
-  const maxPct = sortedAgents[0]?.[1] ?? 1;
-  const barMaxLen = 20;
-
-  const header = `| Agent | | % |`;
-  const separator = `|-------|---|---|`;
-  const rows = sortedAgents.map(([agent, avgPct]) => {
-    const barLen = Math.round((avgPct / maxPct) * barMaxLen);
-    const bar = "█".repeat(barLen);
-    return `| ${agent} | ${bar} | ${avgPct.toFixed(2)}% |`;
+  // Build the table: rows = agents + combined, columns = months
+  const monthLabels = months.map((m) => {
+    const [y, mo] = m.split("-");
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return `${monthNames[parseInt(mo, 10) - 1]} ${y.slice(2)}`;
   });
 
-  const caption = `10-day rolling average, as a % of all public commits on GitHub.`;
-  const table = [caption, "", header, separator, ...rows].join("\n");
+  const header = `| Agent | ${monthLabels.join(" | ")} |`;
+  const separator = `|-------|${months.map(() => "---").join("|")}|`;
+
+  const agentRows = sortedAgents.map(({ agent, byDate }) => {
+    const cells = months.map((m) => {
+      const mDates = sortedDates.filter((d) => d.startsWith(m));
+      const avg = mDates.reduce((sum, d) => sum + (byDate.get(d) ?? 0), 0) / mDates.length;
+      return avg < 0.005 ? "-" : `${avg.toFixed(2)}%`;
+    });
+    return `| ${agent} | ${cells.join(" | ")} |`;
+  });
+
+  // Combined row
+  const combinedCells = months.map((m) => {
+    const mDates = sortedDates.filter((d) => d.startsWith(m));
+    const avg = mDates.reduce((sum, d) => sum + (combinedByDate.get(d) ?? 0), 0) / mDates.length;
+    return `**${avg.toFixed(2)}%**`;
+  });
+  const combinedRow = `| **All Agents** | ${combinedCells.join(" | ")} |`;
+
+  const caption = `Monthly average, as a % of all public commits on GitHub.`;
+  const table = [caption, "", header, separator, ...agentRows, combinedRow].join("\n");
 
   const readme = readFileSync("README.md", "utf-8");
   const updated = readme.replace(
@@ -170,7 +212,9 @@ function generateTable() {
     `<!-- recent-table-start -->\n${table}\n<!-- recent-table-end -->`,
   );
   writeFileSync("README.md", updated);
-  console.log(`Updated README.md with ${last10.length}-day table (${sortedAgents.length} agents)`);
+  console.log(
+    `Updated README.md with full history table (${months.length} months, ${sortedAgents.length} agents)`,
+  );
 }
 
 async function main() {
