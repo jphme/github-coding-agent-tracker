@@ -64,4 +64,7 @@ export const AGENTS: Agent[] = [
   // Co-Authored-By trailer: "Co-authored-by: Windsurf <windsurf@codeium.com>"
   // Windsurf's Cascade agent adds this trailer when committing from the IDE.
   { name: "Windsurf", key: "windsurf", query: "windsurf@codeium.com" },
+
+  // GitHub App bot — commit author is jetbrains-junie[bot]
+  { name: "JetBrains Junie", key: "junie", query: "author:jetbrains-junie[bot]" },
 ];

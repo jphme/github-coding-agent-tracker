@@ -54,6 +54,7 @@ Specific coding agents are detected using the following search queries:
 | Amazon Q            | `author:amazon-q-developer[bot]`      |
 | Amp (Sourcegraph)   | `amp@ampcode.com`                     |
 | Windsurf            | `windsurf@codeium.com`                |
+| JetBrains Junie     | `author:jetbrains-junie[bot]`         |
 
 ## Query the Data with DuckDB
 
@@ -90,7 +91,7 @@ bun run src/chart.ts
 
 ## Backfill
 
-At ~30 requests/min (GitHub search API rate limit), each day requires 36 queries (24 hourly windows + 12 agents), so backfilling runs at ~1 day/minute (~6 hours for a full year).
+At ~30 requests/min (GitHub search API rate limit), each day requires 37 queries (24 hourly windows + 13 agents), so backfilling runs at ~1 day/minute (~6 hours for a full year).
 
 ```bash
 GITHUB_TOKEN=ghp_... bun run src/fetch.ts 2025-02-17 2026-02-15
