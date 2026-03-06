@@ -11,9 +11,9 @@ The following chart and table are updated automatically by a GitHub Action runni
 
 | Agent          |                      | %     |
 | -------------- | -------------------- | ----- |
-| Claude Code    | ████████████████████ | 3.87% |
-| GitHub Copilot | ██                   | 0.30% |
-| Cursor         | █                    | 0.15% |
+| Claude Code    | ████████████████████ | 3.79% |
+| GitHub Copilot | ██                   | 0.29% |
+| Cursor         | █                    | 0.10% |
 
 <!-- recent-table-end -->
 
