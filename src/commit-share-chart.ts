@@ -74,9 +74,9 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
 
   return {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
-    width: 1200,
-    height: 560,
-    padding: { top: 80, right: 50, bottom: 70, left: 60 },
+    width: 1600,
+    height: 800,
+    padding: { top: 120, right: 60, bottom: 100, left: 80 },
     background: "#FAFBFF",
     layer: [
       // Stacked area
@@ -85,7 +85,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
         mark: {
           type: "area",
           interpolate: "monotone",
-          line: { strokeWidth: 2.5 },
+          line: { strokeWidth: 3.5 },
           opacity: 0.7,
         },
         encoding: {
@@ -98,7 +98,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
               labelAngle: 0,
               tickCount: "month",
               labelFont: "Helvetica Neue, Arial, sans-serif",
-              labelFontSize: 16,
+              labelFontSize: 24,
               labelColor: "#8B95A5",
               gridColor: "#EEF0F6",
               gridDash: [4, 4],
@@ -113,13 +113,13 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
             axis: {
               title: "Share of All Public Commits (%)",
               titleFont: "Helvetica Neue, Arial, sans-serif",
-              titleFontSize: 17,
+              titleFontSize: 26,
               titleFontWeight: 500,
               titleColor: "#5A6577",
-              titlePadding: 20,
+              titlePadding: 24,
               format: ".1f",
               labelFont: "Helvetica Neue, Arial, sans-serif",
-              labelFontSize: 16,
+              labelFontSize: 24,
               labelColor: "#8B95A5",
               gridColor: "#EEF0F6",
               gridDash: [4, 4],
@@ -136,14 +136,14 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
               orient: "top",
               direction: "horizontal",
               labelFont: "Helvetica Neue, Arial, sans-serif",
-              labelFontSize: 18,
+              labelFontSize: 28,
               labelFontWeight: 500,
               labelColor: "#3D4663",
               symbolType: "circle",
-              symbolSize: 180,
-              labelLimit: 500,
-              columnPadding: 20,
-              offset: -10,
+              symbolSize: 300,
+              labelLimit: 800,
+              columnPadding: 30,
+              offset: -15,
             },
           },
           order: {
@@ -158,7 +158,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
         mark: {
           type: "text",
           text: "AI Agent Commits as Share of All Public GitHub Commits",
-          fontSize: 28,
+          fontSize: 42,
           fontWeight: 700,
           font: "Helvetica Neue, Arial, sans-serif",
           color: "#1E2A3A",
@@ -166,7 +166,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
         },
         encoding: {
           x: { datum: 0, type: "quantitative", scale: null },
-          y: { datum: -50, type: "quantitative", scale: null },
+          y: { datum: -75, type: "quantitative", scale: null },
         },
       },
       // Subtitle
@@ -175,7 +175,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
         mark: {
           type: "text",
           text: "Claude Code vs Other Agents  ·  October 2025 – Present",
-          fontSize: 17,
+          fontSize: 26,
           fontWeight: 400,
           font: "Helvetica Neue, Arial, sans-serif",
           color: "#8B95A5",
@@ -183,7 +183,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
         },
         encoding: {
           x: { datum: 0, type: "quantitative", scale: null },
-          y: { datum: -24, type: "quantitative", scale: null },
+          y: { datum: -35, type: "quantitative", scale: null },
         },
       },
       // Source attribution
@@ -192,7 +192,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
         mark: {
           type: "text",
           text: "by @jphme / ellamind.com — based on powerset-co/github-coding-agent-tracker",
-          fontSize: 14,
+          fontSize: 22,
           fontWeight: 400,
           font: "Helvetica Neue, Arial, sans-serif",
           color: "#A0A8B8",
@@ -200,7 +200,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
         },
         encoding: {
           x: { datum: 0, type: "quantitative", scale: null },
-          y: { datum: { expr: "height + 50" }, type: "quantitative", scale: null },
+          y: { datum: { expr: "height + 70" }, type: "quantitative", scale: null },
         },
       },
       // Watermark
@@ -209,7 +209,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
         mark: {
           type: "text",
           text: "research.powerset.co",
-          fontSize: 26,
+          fontSize: 36,
           opacity: 0.06,
           angle: -25,
           font: "Helvetica Neue, Arial, sans-serif",
@@ -244,7 +244,7 @@ async function main() {
   const view = new vega.View(vega.parse(vegaSpec), { renderer: "none" });
   const svg = await view.toSVG();
 
-  const png = await sharp(Buffer.from(svg)).png({ quality: 95 }).toBuffer();
+  const png = await sharp(Buffer.from(svg), { density: 200 }).png({ quality: 95 }).toBuffer();
   writeFileSync("commit-share-chart.png", png);
   console.log(`Wrote commit-share-chart.png (${(png.length / 1024).toFixed(0)} KB)`);
 }
