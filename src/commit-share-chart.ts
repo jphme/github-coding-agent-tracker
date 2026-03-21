@@ -74,9 +74,10 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
 
   return {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
-    width: 720,
-    height: 400,
-    padding: { top: 100, right: 30, bottom: 80, left: 70 },
+    width: 800,
+    height: 380,
+    padding: { top: 80, right: 15, bottom: 60, left: 50 },
+    autosize: "none",
     background: "#FAFBFF",
     layer: [
       // Stacked area
