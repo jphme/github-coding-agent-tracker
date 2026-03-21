@@ -74,155 +74,94 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
 
   return {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
-    width: 800,
-    height: 380,
-    padding: { top: 80, right: 15, bottom: 60, left: 50 },
-    autosize: "none",
+    width: 1000,
+    height: 420,
+    padding: { top: 8, right: 12, bottom: 16, left: 4 },
     background: "#FAFBFF",
-    layer: [
-      // Stacked area
-      {
-        data: { values: data },
-        mark: {
-          type: "area",
-          interpolate: "monotone",
-          line: { strokeWidth: 2 },
-          opacity: 0.7,
-        },
-        encoding: {
-          x: {
-            field: "date",
-            type: "temporal",
-            axis: {
-              title: null,
-              format: "%b %Y",
-              labelAngle: 0,
-              tickCount: "month",
-              labelFont: "Helvetica Neue, Arial, sans-serif",
-              labelFontSize: 18,
-              labelColor: "#8B95A5",
-              gridColor: "#EEF0F6",
-              gridDash: [4, 4],
-              domainColor: "#DEE2EC",
-              tickColor: "#DEE2EC",
-            },
-          },
-          y: {
-            field: "percentage",
-            type: "quantitative",
-            stack: "zero",
-            axis: {
-              title: "Share of All Public Commits (%)",
-              titleFont: "Helvetica Neue, Arial, sans-serif",
-              titleFontSize: 20,
-              titleFontWeight: 600,
-              titleColor: "#5A6577",
-              titlePadding: 16,
-              format: ".1f",
-              labelFont: "Helvetica Neue, Arial, sans-serif",
-              labelFontSize: 18,
-              labelColor: "#8B95A5",
-              gridColor: "#EEF0F6",
-              gridDash: [4, 4],
-              domainColor: "#DEE2EC",
-              tickColor: "#DEE2EC",
-            },
-          },
-          color: {
-            field: "category",
-            type: "nominal",
-            scale: colorScale,
-            legend: {
-              title: null,
-              orient: "top",
-              direction: "horizontal",
-              labelFont: "Helvetica Neue, Arial, sans-serif",
-              labelFontSize: 20,
-              labelFontWeight: 600,
-              labelColor: "#3D4663",
-              symbolType: "circle",
-              symbolSize: 200,
-              labelLimit: 600,
-              columnPadding: 24,
-              offset: -8,
-            },
-          },
-          order: {
-            field: "category",
-            sort: "descending",
-          },
+    title: {
+      text: "AI Agent Commits as Share of All Public GitHub Commits",
+      subtitle: "Claude Code vs Other Agents  ·  October 2025 – Present",
+      font: "Helvetica Neue, Arial, sans-serif",
+      fontSize: 32,
+      fontWeight: 700,
+      color: "#1E2A3A",
+      subtitleFont: "Helvetica Neue, Arial, sans-serif",
+      subtitleFontSize: 21,
+      subtitleColor: "#8B95A5",
+      subtitlePadding: 8,
+      anchor: "start",
+      offset: 18,
+    },
+    data: { values: data },
+    mark: {
+      type: "area",
+      interpolate: "monotone",
+      line: { strokeWidth: 2.5 },
+      opacity: 0.75,
+    },
+    encoding: {
+      x: {
+        field: "date",
+        type: "temporal",
+        axis: {
+          title: null,
+          format: "%b %Y",
+          labelAngle: 0,
+          tickCount: "month",
+          labelFont: "Helvetica Neue, Arial, sans-serif",
+          labelFontSize: 19,
+          labelColor: "#8B95A5",
+          gridColor: "#EEF0F6",
+          gridDash: [4, 4],
+          domainColor: "#DEE2EC",
+          tickColor: "#DEE2EC",
         },
       },
-      // Title as text mark for precise positioning
-      {
-        data: { values: [{}] },
-        mark: {
-          type: "text",
-          text: "AI Agent Commits as Share of All Public GitHub Commits",
-          fontSize: 30,
-          fontWeight: 700,
-          font: "Helvetica Neue, Arial, sans-serif",
-          color: "#1E2A3A",
-          align: "left",
-        },
-        encoding: {
-          x: { datum: 0, type: "quantitative", scale: null },
-          y: { datum: -62, type: "quantitative", scale: null },
-        },
-      },
-      // Subtitle
-      {
-        data: { values: [{}] },
-        mark: {
-          type: "text",
-          text: "Claude Code vs Other Agents  ·  October 2025 – Present",
-          fontSize: 19,
-          fontWeight: 400,
-          font: "Helvetica Neue, Arial, sans-serif",
-          color: "#8B95A5",
-          align: "left",
-        },
-        encoding: {
-          x: { datum: 0, type: "quantitative", scale: null },
-          y: { datum: -32, type: "quantitative", scale: null },
+      y: {
+        field: "percentage",
+        type: "quantitative",
+        stack: "zero",
+        axis: {
+          title: "Share of All Public Commits (%)",
+          titleFont: "Helvetica Neue, Arial, sans-serif",
+          titleFontSize: 20,
+          titleFontWeight: 600,
+          titleColor: "#5A6577",
+          titlePadding: 12,
+          format: ".1f",
+          labelFont: "Helvetica Neue, Arial, sans-serif",
+          labelFontSize: 19,
+          labelColor: "#8B95A5",
+          gridColor: "#EEF0F6",
+          gridDash: [4, 4],
+          domainColor: "#DEE2EC",
+          tickColor: "#DEE2EC",
         },
       },
-      // Source attribution
-      {
-        data: { values: [{}] },
-        mark: {
-          type: "text",
-          text: "by @jphme / ellamind.com — based on powerset-co/github-coding-agent-tracker",
-          fontSize: 16,
-          fontWeight: 400,
-          font: "Helvetica Neue, Arial, sans-serif",
-          color: "#A0A8B8",
-          align: "left",
-        },
-        encoding: {
-          x: { datum: 0, type: "quantitative", scale: null },
-          y: { datum: { expr: "height + 55" }, type: "quantitative", scale: null },
-        },
-      },
-      // Watermark
-      {
-        data: { values: [{}] },
-        mark: {
-          type: "text",
-          text: "research.powerset.co",
-          fontSize: 22,
-          opacity: 0.06,
-          angle: -25,
-          font: "Helvetica Neue, Arial, sans-serif",
-          fontWeight: 300,
-          color: "#3D4663",
-        },
-        encoding: {
-          x: { datum: { expr: "width / 2" }, type: "quantitative", scale: null },
-          y: { datum: { expr: "height / 2" }, type: "quantitative", scale: null },
+      color: {
+        field: "category",
+        type: "nominal",
+        scale: colorScale,
+        legend: {
+          title: null,
+          orient: "top",
+          direction: "horizontal",
+          labelFont: "Helvetica Neue, Arial, sans-serif",
+          labelFontSize: 21,
+          labelFontWeight: 600,
+          labelColor: "#3D4663",
+          symbolType: "circle",
+          symbolSize: 240,
+          labelLimit: 600,
+          columnPadding: 20,
+          offset: 4,
         },
       },
-    ],
+      order: {
+        field: "category",
+        sort: "descending",
+      },
+    },
     config: {
       font: "Helvetica Neue, Arial, sans-serif",
       view: { stroke: null },
@@ -245,8 +184,24 @@ async function main() {
   const view = new vega.View(vega.parse(vegaSpec), { renderer: "none" });
   const svg = await view.toSVG();
 
-  // density: 150 for crisp output at ~1700px wide — good for social/mobile
-  const png = await sharp(Buffer.from(svg), { density: 150 }).png({ quality: 95 }).toBuffer();
+  // Render chart then add attribution below via sharp composite
+  const DPI = 150;
+  const chartBuf = await sharp(Buffer.from(svg), { density: DPI }).png().toBuffer();
+  const { width: cw } = await sharp(chartBuf).metadata();
+
+  const attrText = "by @jphme / ellamind.com — based on powerset-co/github-coding-agent-tracker";
+  const attrH = 65;
+  const attrSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${cw}" height="${attrH}">
+    <text x="30" y="40" font-family="Helvetica Neue, Arial, sans-serif"
+          font-size="30" fill="#A0A8B8">${attrText}</text>
+  </svg>`;
+  const attrBuf = await sharp(Buffer.from(attrSvg)).png().toBuffer();
+
+  const png = await sharp(chartBuf)
+    .extend({ bottom: attrH, background: "#FAFBFF" })
+    .composite([{ input: attrBuf, gravity: "south" }])
+    .png({ quality: 95 })
+    .toBuffer();
   writeFileSync("commit-share-chart.png", png);
   console.log(`Wrote commit-share-chart.png (${(png.length / 1024).toFixed(0)} KB)`);
 }
