@@ -74,9 +74,9 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
 
   return {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
-    width: 1100,
-    height: 500,
-    padding: { top: 60, right: 40, bottom: 55, left: 50 },
+    width: 1200,
+    height: 560,
+    padding: { top: 80, right: 50, bottom: 70, left: 60 },
     background: "#FAFBFF",
     layer: [
       // Stacked area
@@ -98,7 +98,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
               labelAngle: 0,
               tickCount: "month",
               labelFont: "Helvetica Neue, Arial, sans-serif",
-              labelFontSize: 12,
+              labelFontSize: 16,
               labelColor: "#8B95A5",
               gridColor: "#EEF0F6",
               gridDash: [4, 4],
@@ -113,13 +113,13 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
             axis: {
               title: "Share of All Public Commits (%)",
               titleFont: "Helvetica Neue, Arial, sans-serif",
-              titleFontSize: 13,
+              titleFontSize: 17,
               titleFontWeight: 500,
               titleColor: "#5A6577",
-              titlePadding: 16,
+              titlePadding: 20,
               format: ".1f",
               labelFont: "Helvetica Neue, Arial, sans-serif",
-              labelFontSize: 12,
+              labelFontSize: 16,
               labelColor: "#8B95A5",
               gridColor: "#EEF0F6",
               gridDash: [4, 4],
@@ -136,11 +136,11 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
               orient: "top",
               direction: "horizontal",
               labelFont: "Helvetica Neue, Arial, sans-serif",
-              labelFontSize: 14,
+              labelFontSize: 18,
               labelFontWeight: 500,
               labelColor: "#3D4663",
               symbolType: "circle",
-              symbolSize: 120,
+              symbolSize: 180,
               labelLimit: 500,
               columnPadding: 20,
               offset: -10,
@@ -158,7 +158,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
         mark: {
           type: "text",
           text: "AI Agent Commits as Share of All Public GitHub Commits",
-          fontSize: 22,
+          fontSize: 28,
           fontWeight: 700,
           font: "Helvetica Neue, Arial, sans-serif",
           color: "#1E2A3A",
@@ -166,7 +166,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
         },
         encoding: {
           x: { datum: 0, type: "quantitative", scale: null },
-          y: { datum: -38, type: "quantitative", scale: null },
+          y: { datum: -50, type: "quantitative", scale: null },
         },
       },
       // Subtitle
@@ -175,7 +175,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
         mark: {
           type: "text",
           text: "Claude Code vs Other Agents  ·  October 2025 – Present",
-          fontSize: 14,
+          fontSize: 17,
           fontWeight: 400,
           font: "Helvetica Neue, Arial, sans-serif",
           color: "#8B95A5",
@@ -183,7 +183,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
         },
         encoding: {
           x: { datum: 0, type: "quantitative", scale: null },
-          y: { datum: -18, type: "quantitative", scale: null },
+          y: { datum: -24, type: "quantitative", scale: null },
         },
       },
       // Source attribution
@@ -192,7 +192,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
         mark: {
           type: "text",
           text: "by @jphme / ellamind.com — based on powerset-co/github-coding-agent-tracker",
-          fontSize: 10,
+          fontSize: 14,
           fontWeight: 400,
           font: "Helvetica Neue, Arial, sans-serif",
           color: "#A0A8B8",
@@ -200,7 +200,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
         },
         encoding: {
           x: { datum: 0, type: "quantitative", scale: null },
-          y: { datum: { expr: "height + 40" }, type: "quantitative", scale: null },
+          y: { datum: { expr: "height + 50" }, type: "quantitative", scale: null },
         },
       },
       // Watermark
