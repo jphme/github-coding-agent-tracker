@@ -76,7 +76,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
     width: 1000,
     height: 420,
-    padding: { top: 8, right: 12, bottom: 16, left: 4 },
+    padding: 0,
     background: "#FAFBFF",
     title: {
       text: "AI Agent Commits as Share of All Public GitHub Commits",
@@ -184,26 +184,49 @@ async function main() {
   const view = new vega.View(vega.parse(vegaSpec), { renderer: "none" });
   const svg = await view.toSVG();
 
-  // Render chart then add attribution below via sharp composite
+  // 1) Render SVG → PNG at high density, then flatten alpha to #FAFBFF
   const DPI = 150;
-  const chartBuf = await sharp(Buffer.from(svg), { density: DPI }).png().toBuffer();
-  const { width: cw } = await sharp(chartBuf).metadata();
+  const rawBuf = await sharp(Buffer.from(svg), { density: DPI })
+    .flatten({ background: "#FAFBFF" })
+    .png()
+    .toBuffer();
 
+  // 2) Trim all excess whitespace from the edges
+  const trimmedBuf = await sharp(rawBuf)
+    .trim({ background: "#FAFBFF", threshold: 15 })
+    .png()
+    .toBuffer();
+  const { width: tw, height: th } = await sharp(trimmedBuf).metadata();
+
+  // 3) Add uniform, generous margins + extra bottom space for attribution
+  const MARGIN = 40;
+  const ATTR_H = 60;
+  const finalW = tw! + MARGIN * 2;
+  const finalH = th! + MARGIN * 2 + ATTR_H;
+
+  // 4) Create attribution text overlay
   const attrText = "by @jphme / ellamind.com — based on powerset-co/github-coding-agent-tracker";
-  const attrH = 65;
-  const attrSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${cw}" height="${attrH}">
-    <text x="30" y="40" font-family="Helvetica Neue, Arial, sans-serif"
-          font-size="30" fill="#A0A8B8">${attrText}</text>
+  const attrSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${finalW}" height="${ATTR_H}">
+    <text x="${MARGIN}" y="38" font-family="Helvetica Neue, Arial, sans-serif"
+          font-size="28" fill="#A0A8B8">${attrText}</text>
   </svg>`;
   const attrBuf = await sharp(Buffer.from(attrSvg)).png().toBuffer();
 
-  const png = await sharp(chartBuf)
-    .extend({ bottom: attrH, background: "#FAFBFF" })
-    .composite([{ input: attrBuf, gravity: "south" }])
+  // 5) Compose: trimmed chart centered with margins, attribution at bottom
+  const png = await sharp({
+    create: { width: finalW, height: finalH, channels: 4, background: "#FAFBFF" },
+  })
+    .composite([
+      { input: trimmedBuf, left: MARGIN, top: MARGIN },
+      { input: attrBuf, left: 0, top: th! + MARGIN * 2 - 10 },
+    ])
     .png({ quality: 95 })
     .toBuffer();
+
   writeFileSync("commit-share-chart.png", png);
-  console.log(`Wrote commit-share-chart.png (${(png.length / 1024).toFixed(0)} KB)`);
+  console.log(
+    `Wrote commit-share-chart.png (${(png.length / 1024).toFixed(0)} KB, ${finalW}x${finalH})`,
+  );
 }
 
 main();
