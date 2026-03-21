@@ -3,7 +3,7 @@
 A public, auditable log of AI coding agent commit counts on public GitHub repos over time.
 The following chart and table are updated automatically by a GitHub Action running on a daily schedule.
 
-![AI Coding Agent Commits](chart.png)
+![AI Agent Commits as Share of All Public GitHub Commits](commit-share-chart.png)
 
 <!-- recent-table-start -->
 
@@ -85,8 +85,9 @@ GITHUB_TOKEN=ghp_... bun run src/fetch.ts 2026-02-14
 # Fetch a date range (inclusive)
 GITHUB_TOKEN=ghp_... bun run src/fetch.ts 2025-02-17 2026-02-15
 
-# Generate chart from existing data
+# Generate charts from existing data
 bun run src/chart.ts
+bun run src/commit-share-chart.ts
 ```
 
 ## Backfill
