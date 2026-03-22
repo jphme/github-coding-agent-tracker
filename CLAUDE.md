@@ -21,6 +21,15 @@ bun run src/chart.ts
 # Generate commit-share-chart.png (Claude vs Others stacked area chart)
 bun run src/commit-share-chart.ts
 
+# Fetch PR data for a single day
+GITHUB_TOKEN=ghp_... bun run src/fetch-prs.ts 2026-03-20
+
+# Fetch PR data for a date range (inclusive)
+GITHUB_TOKEN=ghp_... bun run src/fetch-prs.ts 2026-03-01 2026-03-20
+
+# Generate pr-share-chart.png (Claude vs Codex vs Others stacked area chart)
+bun run src/pr-share-chart.ts
+
 # Format code
 bun run format
 
@@ -32,7 +41,7 @@ Uses **Bun** as runtime and package manager. Install deps with `bun install`. No
 
 ## Architecture
 
-Four source files form the pipeline:
+Two parallel pipelines track commits and PRs:
 
 - **`src/agents.ts`** — Agent definitions. Each agent has a `name`, `key` (CSV column), and `query` (GitHub search fragment). Two detection patterns: `author:bot[bot]` for GitHub App agents, or email/domain text matching for `Co-Authored-By` trailers.
 
@@ -41,6 +50,12 @@ Four source files form the pipeline:
 - **`src/chart.ts`** — Reads all `data/*.csv` files, computes agent percentages, renders a Vega-Lite area chart to `chart.png` via sharp, and injects a 10-day rolling average markdown table into `README.md` between `<!-- recent-table-start -->` / `<!-- recent-table-end -->` sentinel comments.
 
 - **`src/commit-share-chart.ts`** — Generates `commit-share-chart.png`, a stacked area chart showing Claude Code vs Other Agents as a percentage of all public GitHub commits. Uses Vega-Lite with sharp for rendering and post-processing (trim + controlled margins).
+
+- **`src/pr-agents.ts`** — PR agent definitions. Each agent has a `name`, `key`, and `query` (GitHub PR search fragment). Detection uses `author:bot[bot]` for GitHub App agents or `head:prefix/` for branch-name matching.
+
+- **`src/fetch-prs.ts`** — PR data collection. For each date, queries total public PRs and per-agent PR counts. Writes `pr-data/YYYY-MM-DD.csv`.
+
+- **`src/pr-share-chart.ts`** — Generates `pr-share-chart.png`, a stacked area chart showing Claude Code vs OpenAI Codex vs Other Agents as a percentage of all public GitHub PRs.
 
 ## Data Format
 
