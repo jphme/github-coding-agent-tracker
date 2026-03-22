@@ -8,7 +8,8 @@ import * as vegaLite from "vega-lite";
 import sharp from "sharp";
 
 const CLAUDE_KEY = "claude";
-const OTHER_AGENT_KEYS = ["codex", "copilot", "cursor", "devin", "jules", "amazonq", "opencode"];
+const CODEX_KEY = "codex";
+const OTHER_AGENT_KEYS = ["copilot", "cursor", "devin", "jules", "amazonq", "opencode"];
 
 interface StackedPoint {
   date: string;
@@ -35,9 +36,11 @@ function loadData(): StackedPoint[] {
     if (!total || total === 0) continue;
 
     const claudeCount = rows.get(CLAUDE_KEY) ?? 0;
+    const codexCount = rows.get(CODEX_KEY) ?? 0;
     const otherSum = OTHER_AGENT_KEYS.reduce((sum, k) => sum + (rows.get(k) ?? 0), 0);
 
     points.push({ date, category: "Claude Code", percentage: (claudeCount / total) * 100 });
+    points.push({ date, category: "OpenAI Codex", percentage: (codexCount / total) * 100 });
     points.push({
       date,
       category: "Other Agents",
@@ -51,8 +54,8 @@ function loadData(): StackedPoint[] {
 
 function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
   const colorScale = {
-    domain: ["Claude Code", "Other Agents"],
-    range: ["#6C5CE7", "#00CEC9"],
+    domain: ["Claude Code", "OpenAI Codex", "Other Agents"],
+    range: ["#6C5CE7", "#10B981", "#00CEC9"],
   };
 
   return {
@@ -63,7 +66,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
     background: "#FAFBFF",
     title: {
       text: "AI Agent PRs as Share of All Public GitHub Pull Requests",
-      subtitle: "Claude Code vs Other Agents  ·  January 2025 – Present",
+      subtitle: "Claude Code vs OpenAI Codex vs Other Agents  ·  January 2025 – Present",
       font: "Helvetica Neue, Arial, sans-serif",
       fontSize: 32,
       fontWeight: 700,
