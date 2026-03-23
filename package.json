@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "fetch": "bun run src/fetch.ts",
+    "fetch-commits": "bun run src/fetch-commits.ts",
     "chart": "bun run src/chart.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

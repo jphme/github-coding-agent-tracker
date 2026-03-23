@@ -92,10 +92,10 @@ ORDER BY date, count DESC;
 
 ```bash
 # Fetch a single day
-GITHUB_TOKEN=ghp_... bun run src/fetch.ts 2026-02-14
+GITHUB_TOKEN=ghp_... bun run src/fetch-commits.ts 2026-02-14
 
 # Fetch a date range (inclusive)
-GITHUB_TOKEN=ghp_... bun run src/fetch.ts 2025-02-17 2026-02-15
+GITHUB_TOKEN=ghp_... bun run src/fetch-commits.ts 2025-02-17 2026-02-15
 
 # Apply outlier correction
 uv run python3 src/fix_commit_totals.py --apply
@@ -114,5 +114,5 @@ bun run src/total-activity-chart.ts
 At ~30 requests/min (GitHub search API rate limit), each day requires 37 queries (24 hourly windows + 13 agents), so backfilling runs at ~1 day/minute (~6 hours for a full year).
 
 ```bash
-GITHUB_TOKEN=ghp_... bun run src/fetch.ts 2025-02-17 2026-02-15
+GITHUB_TOKEN=ghp_... bun run src/fetch-commits.ts 2025-02-17 2026-02-15
 ```

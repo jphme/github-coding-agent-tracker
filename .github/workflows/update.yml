@@ -1,4 +1,4 @@
-name: Update coding agent data
+name: Daily data update
 
 on:
   schedule:
@@ -22,9 +22,16 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - run: bun install
 
-      - name: Fetch data
+      # --- Fetch commit data (non-blocking) ---
+      - name: Fetch commit data
+        id: fetch-commits
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INPUT_START: ${{ inputs.start_date }}
@@ -32,17 +39,59 @@ jobs:
         run: |
           START="${INPUT_START:-$(date -d 'yesterday' +%Y-%m-%d)}"
           if [ -n "$INPUT_END" ]; then
-            bun run src/fetch.ts "$START" "$INPUT_END"
+            bun run src/fetch-commits.ts "$START" "$INPUT_END"
           else
-            bun run src/fetch.ts "$START"
+            bun run src/fetch-commits.ts "$START"
           fi
 
+      # --- Fetch PR data (non-blocking) ---
+      - name: Fetch PR data
+        id: fetch-prs
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_START: ${{ inputs.start_date }}
+          INPUT_END: ${{ inputs.end_date }}
+        run: |
+          START="${INPUT_START:-$(date -d 'yesterday' +%Y-%m-%d)}"
+          if [ -n "$INPUT_END" ]; then
+            bun run src/fetch-prs.ts "$START" "$INPUT_END"
+          else
+            bun run src/fetch-prs.ts "$START"
+          fi
+
+      # --- Fail early if both fetches failed (nothing to process) ---
+      - name: Check at least one fetch succeeded
+        if: steps.fetch-commits.outcome == 'failure' && steps.fetch-prs.outcome == 'failure'
+        run: |
+          echo "::error::Both commit and PR fetches failed. Nothing to update."
+          exit 1
+
+      # --- Process data and generate charts ---
+      - name: Clean commit data (apply outlier correction)
+        run: python3 src/fix_commit_totals.py --apply
+
+      - name: Generate weekly summary
+        run: python3 src/generate_weekly_summary.py
+
+      - name: Generate all charts
+        run: |
+          bun run src/chart.ts
+          bun run src/commit-share-chart.ts
+          bun run src/pr-share-chart.ts
+          bun run src/claude-dual-chart.ts
+          bun run src/total-activity-chart.ts
+
+      - name: Format
+        run: bun run format
+
+      # --- Single commit with all changes ---
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add commit-data-raw/
-          git diff --staged --quiet || git commit -m "data update"
+          git add commit-data-raw/ commit-data/ pr-data/ chart.png commit-share-chart.png pr-share-chart.png claude-dual-chart.png total-activity-chart.png weekly-summary.csv README.md
+          git diff --staged --quiet || git commit -m "daily data update"
           git checkout -- .
           git pull --rebase -X theirs
           git push

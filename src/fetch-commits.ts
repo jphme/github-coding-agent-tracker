@@ -1,4 +1,4 @@
-// fetch.ts — Fetches daily commit counts from the GitHub Search API.
+// fetch-commits.ts — Fetches daily commit counts from the GitHub Search API.
 //
 // For each date, we query:
 //   1. Total public commits (split into 24x 1-hour windows, then summed)
@@ -7,13 +7,13 @@
 // Results are written to commit-data-raw/YYYY-MM-DD.csv with columns: date, query, count.
 //
 // Usage:
-//   bun run src/fetch.ts 2026-02-14           # single day
-//   bun run src/fetch.ts 2025-02-17 2026-02-15  # inclusive date range
+//   bun run src/fetch-commits.ts 2026-02-14           # single day
+//   bun run src/fetch-commits.ts 2025-02-17 2026-02-15  # inclusive date range
 
 import { Octokit } from "octokit";
 import { throttling } from "@octokit/plugin-throttling";
 import { retry } from "@octokit/plugin-retry";
-import { AGENTS } from "./agents.js";
+import { AGENTS } from "./commit-agents.js";
 import { mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
 
@@ -122,7 +122,7 @@ function printSummary(date: string, counts: Map<string, number>): void {
 // Supports a single date or an inclusive start..end range.
 function parseDateRange(args: string[]): string[] {
   if (args.length === 0) {
-    console.error("Usage: bun run src/fetch.ts YYYY-MM-DD [YYYY-MM-DD]");
+    console.error("Usage: bun run src/fetch-commits.ts YYYY-MM-DD [YYYY-MM-DD]");
     process.exit(1);
   }
 

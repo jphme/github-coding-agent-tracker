@@ -10,10 +10,10 @@ A data pipeline that tracks daily public GitHub commit volumes for AI coding age
 
 ```bash
 # Fetch data for a single day (requires GITHUB_TOKEN env var)
-GITHUB_TOKEN=ghp_... bun run src/fetch.ts 2026-02-14
+GITHUB_TOKEN=ghp_... bun run src/fetch-commits.ts 2026-02-14
 
 # Fetch data for a date range (inclusive)
-GITHUB_TOKEN=ghp_... bun run src/fetch.ts 2025-02-17 2026-02-15
+GITHUB_TOKEN=ghp_... bun run src/fetch-commits.ts 2025-02-17 2026-02-15
 
 # Apply outlier correction (copies commit-data-raw/ -> commit-data/ with fixes)
 uv run python3 src/fix_commit_totals.py --apply
@@ -55,9 +55,9 @@ Uses **Bun** as runtime and package manager. Install deps with `bun install`. No
 
 Two parallel pipelines track commits and PRs:
 
-- **`src/agents.ts`** — Agent definitions. Each agent has a `name`, `key` (CSV column), and `query` (GitHub search fragment). Two detection patterns: `author:bot[bot]` for GitHub App agents, or email/domain text matching for `Co-Authored-By` trailers.
+- **`src/commit-agents.ts`** — Agent definitions. Each agent has a `name`, `key` (CSV column), and `query` (GitHub search fragment). Two detection patterns: `author:bot[bot]` for GitHub App agents, or email/domain text matching for `Co-Authored-By` trailers.
 
-- **`src/fetch.ts`** — Data collection. For each date, runs 24 hourly-window GitHub search queries to get accurate total commit counts (workaround for the API's ~1M `total_count` ceiling), then one query per agent. Writes `commit-data-raw/YYYY-MM-DD.csv`. Uses Octokit with throttling and retry plugins for rate limit handling and transient error recovery.
+- **`src/fetch-commits.ts`** — Data collection. For each date, runs 24 hourly-window GitHub search queries to get accurate total commit counts (workaround for the API's ~1M `total_count` ceiling), then one query per agent. Writes `commit-data-raw/YYYY-MM-DD.csv`. Uses Octokit with throttling and retry plugins for rate limit handling and transient error recovery.
 
 - **`src/fix_commit_totals.py`** — Outlier correction. Reads raw data from `commit-data-raw/`, detects inflated totals using a trend model, and writes the complete corrected dataset to `commit-data/`. Raw data is never modified.
 
