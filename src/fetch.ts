@@ -4,7 +4,7 @@
 //   1. Total public commits (split into 24x 1-hour windows, then summed)
 //   2. Per-agent commit counts
 //
-// Results are written to data/YYYY-MM-DD.csv with columns: date, query, count.
+// Results are written to commit-data-raw/YYYY-MM-DD.csv with columns: date, query, count.
 //
 // Usage:
 //   bun run src/fetch.ts 2026-02-14           # single day
@@ -91,11 +91,11 @@ async function fetchDay(date: string): Promise<Map<string, number>> {
   return counts;
 }
 
-// Write results as a flat CSV: data/YYYY-MM-DD.csv
+// Write results as a flat CSV: commit-data-raw/YYYY-MM-DD.csv
 // Each row includes the date so files are self-contained and can be queried
-// with DuckDB via: SELECT * FROM read_csv('data/*.csv')
+// with DuckDB via: SELECT * FROM read_csv('commit-data-raw/*.csv')
 function writeCSV(date: string, counts: Map<string, number>): void {
-  mkdirSync("data", { recursive: true });
+  mkdirSync("commit-data-raw", { recursive: true });
 
   const rows = ["date,query,count"];
   rows.push(`${date},total,${counts.get("total")}`);
@@ -103,7 +103,7 @@ function writeCSV(date: string, counts: Map<string, number>): void {
     rows.push(`${date},${agent.key},${counts.get(agent.key)}`);
   }
 
-  writeFileSync(join("data", `${date}.csv`), rows.join("\n") + "\n");
+  writeFileSync(join("commit-data-raw", `${date}.csv`), rows.join("\n") + "\n");
 }
 
 function formatNumber(n: number): string {

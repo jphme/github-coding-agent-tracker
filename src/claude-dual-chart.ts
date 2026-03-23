@@ -1,105 +1,113 @@
-// pr-share-chart.ts — Generates a stacked area chart showing the share of
-// GitHub PRs created by AI coding agents, starting from available data.
+// claude-dual-chart.ts — Claude Code commit share vs PR share on the same chart
+// Uses 7-day rolling sums for both metrics
 
-import { globSync } from "fs";
-import { readFileSync, writeFileSync } from "fs";
+import { globSync, readFileSync, writeFileSync } from "fs";
 import * as vega from "vega";
 import * as vegaLite from "vega-lite";
 import sharp from "sharp";
 
-const CLAUDE_KEY = "claude";
-const CODEX_KEY = "codex";
-const OTHER_AGENT_KEYS = ["copilot", "cursor", "devin", "jules", "amazonq", "opencode"];
-
-interface DailyRow {
+interface DualPoint {
   date: string;
-  total: number;
-  claude: number;
-  codex: number;
-  other: number;
-}
-
-interface StackedPoint {
-  date: string;
-  category: string;
+  metric: string;
   percentage: number;
 }
 
-function loadDailyRows(): DailyRow[] {
-  const files = globSync("pr-data/*.csv");
-  const rows: DailyRow[] = [];
-
-  for (const file of files) {
+function loadData(): DualPoint[] {
+  // Load commit data
+  const commitFiles = globSync("commit-data/*.csv").sort();
+  const commitDaily: { date: string; claude: number; total: number }[] = [];
+  for (const file of commitFiles) {
     const content = readFileSync(file, "utf-8");
-    const rowMap = new Map<string, number>();
+    const rows = new Map<string, number>();
     let date = "";
-
     for (const line of content.trim().split("\n").slice(1)) {
       const [d, query, countStr] = line.split(",");
       date = d;
-      rowMap.set(query, parseInt(countStr, 10));
+      rows.set(query, parseInt(countStr, 10));
     }
+    if (date >= "2025-05-01") {
+      commitDaily.push({ date, claude: rows.get("claude") ?? 0, total: rows.get("total") ?? 0 });
+    }
+  }
+  commitDaily.sort((a, b) => a.date.localeCompare(b.date));
 
-    // Filter: only dates from May 2025 onwards
-    if (date < "2025-05-01") continue;
+  // Load PR data
+  const prFiles = globSync("pr-data/*.csv").sort();
+  const prDaily: { date: string; claude: number; total: number }[] = [];
+  for (const file of prFiles) {
+    const content = readFileSync(file, "utf-8");
+    const rows = new Map<string, number>();
+    let date = "";
+    for (const line of content.trim().split("\n").slice(1)) {
+      const [d, query, countStr] = line.split(",");
+      date = d;
+      rows.set(query, parseInt(countStr, 10));
+    }
+    if (date >= "2025-05-01") {
+      prDaily.push({ date, claude: rows.get("claude") ?? 0, total: rows.get("total") ?? 0 });
+    }
+  }
+  prDaily.sort((a, b) => a.date.localeCompare(b.date));
 
-    const total = rowMap.get("total");
-    if (!total || total === 0) continue;
+  const WINDOW = 7;
+  const points: DualPoint[] = [];
 
-    const claudeCount = rowMap.get(CLAUDE_KEY) ?? 0;
-    const codexCount = rowMap.get(CODEX_KEY) ?? 0;
-    const otherSum = OTHER_AGENT_KEYS.reduce((sum, k) => sum + (rowMap.get(k) ?? 0), 0);
-
-    rows.push({ date, total, claude: claudeCount, codex: codexCount, other: otherSum });
+  // 7-day rolling for commits
+  for (let i = WINDOW - 1; i < commitDaily.length; i++) {
+    let sumClaude = 0,
+      sumTotal = 0;
+    for (let j = i - WINDOW + 1; j <= i; j++) {
+      sumClaude += commitDaily[j].claude;
+      sumTotal += commitDaily[j].total;
+    }
+    if (sumTotal > 0) {
+      points.push({
+        date: commitDaily[i].date,
+        metric: "Commit Share",
+        percentage: (sumClaude / sumTotal) * 100,
+      });
+    }
   }
 
-  rows.sort((a, b) => a.date.localeCompare(b.date));
-  return rows;
-}
-
-function loadData(): StackedPoint[] {
-  const dailyRows = loadDailyRows();
-  const WINDOW = 7;
-  const points: StackedPoint[] = [];
-
-  for (let i = WINDOW - 1; i < dailyRows.length; i++) {
-    const window = dailyRows.slice(i - WINDOW + 1, i + 1);
-    const totalSum = window.reduce((s, r) => s + r.total, 0);
-    if (totalSum === 0) continue;
-    const claudeSum = window.reduce((s, r) => s + r.claude, 0);
-    const codexSum = window.reduce((s, r) => s + r.codex, 0);
-    const otherSum = window.reduce((s, r) => s + r.other, 0);
-    const date = dailyRows[i].date;
-
-    points.push({ date, category: "Claude Code", percentage: (claudeSum / totalSum) * 100 });
-    points.push({ date, category: "OpenAI Codex", percentage: (codexSum / totalSum) * 100 });
-    points.push({ date, category: "Other Agents", percentage: (otherSum / totalSum) * 100 });
+  // 7-day rolling for PRs
+  for (let i = WINDOW - 1; i < prDaily.length; i++) {
+    let sumClaude = 0,
+      sumTotal = 0;
+    for (let j = i - WINDOW + 1; j <= i; j++) {
+      sumClaude += prDaily[j].claude;
+      sumTotal += prDaily[j].total;
+    }
+    if (sumTotal > 0) {
+      points.push({
+        date: prDaily[i].date,
+        metric: "PR Share",
+        percentage: (sumClaude / sumTotal) * 100,
+      });
+    }
   }
 
   return points;
 }
 
-function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
-  const colorScale = {
-    domain: ["Claude Code", "OpenAI Codex", "Other Agents"],
-    range: ["#6C5CE7", "#10B981", "#00CEC9"],
-  };
+async function main() {
+  const data = loadData();
+  console.log(`${data.length} data points`);
 
-  return {
+  const vlSpec: vegaLite.TopLevelSpec = {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
     width: 1000,
     height: 420,
     padding: 0,
     background: "#FAFBFF",
     title: {
-      text: "AI Agent PRs as Share of All Public GitHub Pull Requests",
-      subtitle: "Claude Code vs OpenAI Codex vs Other Agents  ·  May 2025 – Present",
+      text: "Claude Code: Commit Share vs PR Share of All Public GitHub Activity",
+      subtitle: "7-day rolling averages  ·  May 2025 - Present",
       font: "Helvetica Neue, Arial, sans-serif",
-      fontSize: 32,
+      fontSize: 28,
       fontWeight: 700,
       color: "#1E2A3A",
       subtitleFont: "Helvetica Neue, Arial, sans-serif",
-      subtitleFontSize: 21,
+      subtitleFontSize: 19,
       subtitleColor: "#8B95A5",
       subtitlePadding: 8,
       anchor: "start",
@@ -107,10 +115,9 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
     },
     data: { values: data },
     mark: {
-      type: "area",
+      type: "line",
       interpolate: "monotone",
-      line: { strokeWidth: 2.5 },
-      opacity: 0.75,
+      strokeWidth: 3.5,
     },
     encoding: {
       x: {
@@ -133,9 +140,8 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
       y: {
         field: "percentage",
         type: "quantitative",
-        stack: "zero",
         axis: {
-          title: "Share of All Public PRs (%)",
+          title: "Share (%)",
           titleFont: "Helvetica Neue, Arial, sans-serif",
           titleFontSize: 20,
           titleFontWeight: 600,
@@ -152,9 +158,12 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
         },
       },
       color: {
-        field: "category",
+        field: "metric",
         type: "nominal",
-        scale: colorScale,
+        scale: {
+          domain: ["Commit Share", "PR Share"],
+          range: ["#6C5CE7", "#10B981"],
+        },
         legend: {
           title: null,
           orient: "top",
@@ -170,34 +179,26 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
           offset: 4,
         },
       },
-      order: {
-        field: "category",
-        sort: "descending",
+      strokeDash: {
+        field: "metric",
+        type: "nominal",
+        scale: {
+          domain: ["Commit Share", "PR Share"],
+          range: [[], [8, 4]],
+        },
+        legend: null,
       },
     },
     config: {
       font: "Helvetica Neue, Arial, sans-serif",
       view: { stroke: null },
     },
-  } as vegaLite.TopLevelSpec;
-}
+  };
 
-async function main() {
-  const data = loadData();
-  if (data.length === 0) {
-    console.error("No data found in pr-data/*.csv");
-    process.exit(1);
-  }
-
-  const uniqueDates = new Set(data.map((d) => d.date));
-  console.log(`Loaded ${uniqueDates.size} days of PR data`);
-
-  const vlSpec = buildSpec(data);
   const vegaSpec = vegaLite.compile(vlSpec).spec;
   const view = new vega.View(vega.parse(vegaSpec), { renderer: "none" });
   const svg = await view.toSVG();
 
-  // Render SVG → PNG, trim whitespace, add controlled margins
   const DPI = 150;
   const rawBuf = await sharp(Buffer.from(svg), { density: DPI })
     .flatten({ background: "#FAFBFF" })
@@ -232,9 +233,9 @@ async function main() {
     .png({ quality: 95 })
     .toBuffer();
 
-  writeFileSync("pr-share-chart.png", png);
+  writeFileSync("claude-dual-chart.png", png);
   console.log(
-    `Wrote pr-share-chart.png (${(png.length / 1024).toFixed(0)} KB, ${finalW}x${finalH})`,
+    `Wrote claude-dual-chart.png (${(png.length / 1024).toFixed(0)} KB, ${finalW}x${finalH})`,
   );
 }
 

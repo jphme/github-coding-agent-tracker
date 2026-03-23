@@ -1,7 +1,7 @@
 // chart.ts — Generates an area chart (chart.png) showing the combined percentage
 // of public GitHub commits made by any AI coding agent over time.
 //
-// Reads all CSV files from data/*.csv, sums every agent's commits per day, and
+// Reads all CSV files from commit-data/*.csv, sums every agent's commits per day, and
 // renders a Vega-Lite area chart via sharp (SVG -> PNG).
 
 import { globSync } from "fs";
@@ -35,7 +35,7 @@ const CHART_AGENTS: { name: string; keys: string[] }[] = [
 // Load all daily CSV files and compute the combined agent percentage per day.
 // CSV format: date,query,count — the date is read from the row, not the filename.
 function loadData(): DataPoint[] {
-  const files = globSync("data/*.csv");
+  const files = globSync("commit-data/*.csv");
   const points: DataPoint[] = [];
   const agentKeys = CHART_AGENTS.flatMap((a) => a.keys);
 
@@ -115,7 +115,7 @@ function buildSpec(data: DataPoint[]): vegaLite.TopLevelSpec {
 // Build a markdown table showing the top 3 agents by % of all public commits
 // over the last 10 days, inject into README.md.
 function generateTable() {
-  const files = globSync("data/*.csv");
+  const files = globSync("commit-data/*.csv");
   const perAgent = new Map<string, Map<string, number>>(); // agent -> date -> pct
   const allDates = new Set<string>();
 
@@ -182,7 +182,7 @@ function generateTable() {
 async function main() {
   const data = loadData();
   if (data.length === 0) {
-    console.error("No data found in data/*.csv");
+    console.error("No data found in commit-data/*.csv");
     process.exit(1);
   }
 

@@ -25,29 +25,23 @@ jobs:
       - run: bun install
 
       - name: Fetch PR data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_START: ${{ inputs.start_date }}
+          INPUT_END: ${{ inputs.end_date }}
         run: |
-          START="${{ inputs.start_date }}"
-          END="${{ inputs.end_date }}"
-          START="${START:-$(date -d 'yesterday' +%Y-%m-%d)}"
-          if [ -n "$END" ]; then
-            bun run src/fetch-prs.ts "$START" "$END"
+          START="${INPUT_START:-$(date -d 'yesterday' +%Y-%m-%d)}"
+          if [ -n "$INPUT_END" ]; then
+            bun run src/fetch-prs.ts "$START" "$INPUT_END"
           else
             bun run src/fetch-prs.ts "$START"
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Generate PR share chart
-        run: bun run src/pr-share-chart.ts
-
-      - name: Format
-        run: bun run format
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pr-data/ pr-share-chart.png
+          git add pr-data/
           git diff --staged --quiet || git commit -m "pr data update"
           git checkout -- .
           git pull --rebase -X theirs

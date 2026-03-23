@@ -2,3 +2,4 @@ node_modules/
 _legacy/
 *.env
 package-lock.json
+tmp/

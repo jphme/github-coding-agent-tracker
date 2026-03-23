@@ -1,20 +1,32 @@
 # GitHub Coding Agent Monitor
 
-A public, auditable log of AI coding agent commit counts on public GitHub repos over time.
-The following chart and table are updated automatically by a GitHub Action running on a daily schedule.
+A public, auditable log of AI coding agent commit and PR counts on public GitHub repos over time.
+The following charts and table are updated automatically by GitHub Actions running on a daily schedule.
+
+## Commit Share
 
 ![AI Agent Commits as Share of All Public GitHub Commits](commit-share-chart.png)
 
-<!-- recent-table-start -->
+## PR Share
 
+![AI Agent PRs as Share of All Public GitHub Pull Requests](pr-share-chart.png)
+
+## Claude Code: Commits vs PRs
+
+![Claude Code Commit vs PR Share](claude-dual-chart.png)
+
+## Total GitHub Activity
+
+![Total Public GitHub Activity](total-activity-chart.png)
+
+<!-- recent-table-start -->
 10-day rolling average, as a % of all public commits on GitHub of the top 3 coding agents (by detected commit count).
 
-| Agent          |                      | %     |
-| -------------- | -------------------- | ----- |
-| Claude Code    | ████████████████████ | 5.13% |
-| GitHub Copilot | █                    | 0.26% |
-| Google Jules   |                      | 0.05% |
-
+| Agent | | % |
+|-------|---|---|
+| Claude Code | ████████████████████ | 5.13% |
+| GitHub Copilot | █ | 0.26% |
+| Google Jules |  | 0.05% |
 <!-- recent-table-end -->
 
 ## Caveats
@@ -36,7 +48,7 @@ We'd welcome more companies and developers to leave signatures in their commits 
 
 A daily GitHub Action uses the [GitHub Search API](https://docs.github.com/en/rest/search/search#search-commits) to count new public commits matching each coding agent's signature. Total public commits are counted in 24x 1-hour windows and summed.
 
-Results are stored as flat CSVs in `data/YYYY-MM-DD.csv` and committed back to this repo, along with an updated chart.
+Results are stored as flat CSVs in `commit-data-raw/YYYY-MM-DD.csv` (raw) and `commit-data/YYYY-MM-DD.csv` (corrected for outliers), and committed back to this repo, along with updated charts.
 
 Specific coding agents are detected using the following search queries:
 
@@ -61,7 +73,7 @@ Specific coding agents are detected using the following search queries:
 Since the data lives in this repo in CSV files, you can use [DuckDB](https://duckdb.org/) to query it.
 
 ```sql
-SELECT * FROM read_csv('data/*.csv');
+SELECT * FROM read_csv('commit-data/*.csv');
 ```
 
 ```sql
@@ -71,7 +83,7 @@ SELECT
   query AS agent,
   count,
   count * 100.0 / SUM(count) FILTER (WHERE query = 'total') OVER (PARTITION BY date) AS pct
-FROM read_csv('data/*.csv')
+FROM read_csv('commit-data/*.csv')
 WHERE query NOT LIKE 'total%'
 ORDER BY date, count DESC;
 ```
@@ -85,9 +97,16 @@ GITHUB_TOKEN=ghp_... bun run src/fetch.ts 2026-02-14
 # Fetch a date range (inclusive)
 GITHUB_TOKEN=ghp_... bun run src/fetch.ts 2025-02-17 2026-02-15
 
+# Apply outlier correction
+uv run python3 src/fix_commit_totals.py --apply
+
 # Generate charts from existing data
 bun run src/chart.ts
 bun run src/commit-share-chart.ts
+bun run src/pr-share-chart.ts
+bun run src/claude-dual-chart.ts
+uv run python3 src/generate_weekly_summary.py
+bun run src/total-activity-chart.ts
 ```
 
 ## Backfill

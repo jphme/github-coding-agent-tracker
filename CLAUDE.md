@@ -15,11 +15,23 @@ GITHUB_TOKEN=ghp_... bun run src/fetch.ts 2026-02-14
 # Fetch data for a date range (inclusive)
 GITHUB_TOKEN=ghp_... bun run src/fetch.ts 2025-02-17 2026-02-15
 
+# Apply outlier correction (copies commit-data-raw/ -> commit-data/ with fixes)
+uv run python3 src/fix_commit_totals.py --apply
+
 # Generate chart.png and update README.md table
 bun run src/chart.ts
 
 # Generate commit-share-chart.png (Claude vs Others stacked area chart)
 bun run src/commit-share-chart.ts
+
+# Generate claude-dual-chart.png (Claude commit share vs PR share)
+bun run src/claude-dual-chart.ts
+
+# Generate weekly-summary.csv
+uv run python3 src/generate_weekly_summary.py
+
+# Generate total-activity-chart.png (weekly commits + PRs)
+bun run src/total-activity-chart.ts
 
 # Fetch PR data for a single day
 GITHUB_TOKEN=ghp_... bun run src/fetch-prs.ts 2026-03-20
@@ -45,11 +57,19 @@ Two parallel pipelines track commits and PRs:
 
 - **`src/agents.ts`** — Agent definitions. Each agent has a `name`, `key` (CSV column), and `query` (GitHub search fragment). Two detection patterns: `author:bot[bot]` for GitHub App agents, or email/domain text matching for `Co-Authored-By` trailers.
 
-- **`src/fetch.ts`** — Data collection. For each date, runs 24 hourly-window GitHub search queries to get accurate total commit counts (workaround for the API's ~1M `total_count` ceiling), then one query per agent. Writes `data/YYYY-MM-DD.csv`. Uses Octokit with throttling and retry plugins for rate limit handling and transient error recovery.
+- **`src/fetch.ts`** — Data collection. For each date, runs 24 hourly-window GitHub search queries to get accurate total commit counts (workaround for the API's ~1M `total_count` ceiling), then one query per agent. Writes `commit-data-raw/YYYY-MM-DD.csv`. Uses Octokit with throttling and retry plugins for rate limit handling and transient error recovery.
 
-- **`src/chart.ts`** — Reads all `data/*.csv` files, computes agent percentages, renders a Vega-Lite area chart to `chart.png` via sharp, and injects a 10-day rolling average markdown table into `README.md` between `<!-- recent-table-start -->` / `<!-- recent-table-end -->` sentinel comments.
+- **`src/fix_commit_totals.py`** — Outlier correction. Reads raw data from `commit-data-raw/`, detects inflated totals using a trend model, and writes the complete corrected dataset to `commit-data/`. Raw data is never modified.
+
+- **`src/chart.ts`** — Reads all `commit-data/*.csv` files, computes agent percentages, renders a Vega-Lite area chart to `chart.png` via sharp, and injects a 10-day rolling average markdown table into `README.md` between `<!-- recent-table-start -->` / `<!-- recent-table-end -->` sentinel comments.
 
 - **`src/commit-share-chart.ts`** — Generates `commit-share-chart.png`, a stacked area chart showing Claude Code vs Other Agents as a percentage of all public GitHub commits. Uses Vega-Lite with sharp for rendering and post-processing (trim + controlled margins).
+
+- **`src/claude-dual-chart.ts`** — Generates `claude-dual-chart.png`, a dual-line chart comparing Claude Code's commit share vs PR share over time.
+
+- **`src/generate_weekly_summary.py`** — Aggregates daily commit and PR data into `weekly-summary.csv` with weekly totals and percentages.
+
+- **`src/total-activity-chart.ts`** — Generates `total-activity-chart.png`, a dual-line chart showing total weekly commits and PRs on GitHub. Reads from `weekly-summary.csv`.
 
 - **`src/pr-agents.ts`** — PR agent definitions. Each agent has a `name`, `key`, and `query` (GitHub PR search fragment). Detection uses `author:bot[bot]` for GitHub App agents or `head:prefix/` for branch-name matching.
 
@@ -59,7 +79,11 @@ Two parallel pipelines track commits and PRs:
 
 ## Data Format
 
-Each CSV in `data/` has columns `date,query,count`:
+Two data directories for commits:
+- `commit-data-raw/` — Raw API data, unchanged from fetch
+- `commit-data/` — Cleaned/corrected data used by charts (output of `fix_commit_totals.py`)
+
+Each CSV has columns `date,query,count`:
 
 ```
 date,query,count
@@ -67,7 +91,7 @@ date,query,count
 2026-02-16,claude,184536
 ```
 
-CSVs are queryable with DuckDB: `SELECT * FROM read_csv('data/*.csv')`.
+CSVs are queryable with DuckDB: `SELECT * FROM read_csv('commit-data/*.csv')`.
 
 ## Formatting
 

@@ -1,5 +1,5 @@
 // commit-share-chart.ts — Generates a stacked area chart showing the share of
-// GitHub commits by Claude Code vs all other AI agents combined, starting Oct 2025.
+// GitHub commits by Claude Code vs all other AI agents combined, starting May 2025.
 
 import { globSync } from "fs";
 import { readFileSync, writeFileSync } from "fs";
@@ -37,7 +37,7 @@ interface StackedPoint {
 }
 
 function loadDailyRows(): DailyRow[] {
-  const files = globSync("data/*.csv");
+  const files = globSync("commit-data/*.csv");
   const rows: DailyRow[] = [];
 
   for (const file of files) {
@@ -51,8 +51,8 @@ function loadDailyRows(): DailyRow[] {
       rowMap.set(query, parseInt(countStr, 10));
     }
 
-    // Filter: only dates from October 2025 onwards
-    if (date < "2025-10-01") continue;
+    // Filter: only dates from May 2025 onwards
+    if (date < "2025-05-01") continue;
 
     const total = rowMap.get("total");
     if (!total || total === 0) continue;
@@ -106,7 +106,7 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
     background: "#FAFBFF",
     title: {
       text: "AI Agent Commits as Share of All Public GitHub Commits",
-      subtitle: "Claude Code vs Other Agents  ·  October 2025 – Present",
+      subtitle: "Claude Code vs Other Agents  ·  May 2025 – Present",
       font: "Helvetica Neue, Arial, sans-serif",
       fontSize: 32,
       fontWeight: 700,
@@ -198,12 +198,12 @@ function buildSpec(data: StackedPoint[]): vegaLite.TopLevelSpec {
 async function main() {
   const data = loadData();
   if (data.length === 0) {
-    console.error("No data found in data/*.csv from Oct 2025 onwards");
+    console.error("No data found in commit-data/*.csv from May 2025 onwards");
     process.exit(1);
   }
 
   const uniqueDates = new Set(data.map((d) => d.date));
-  console.log(`Loaded ${uniqueDates.size} days of data (Oct 2025 – present)`);
+  console.log(`Loaded ${uniqueDates.size} days of data (May 2025 – present)`);
 
   const vlSpec = buildSpec(data);
   const vegaSpec = vegaLite.compile(vlSpec).spec;
@@ -231,7 +231,7 @@ async function main() {
   const finalH = th! + MARGIN * 2 + ATTR_H;
 
   // 4) Create attribution text overlay
-  const attrText = "by @jphme / ellamind.com — based on powerset-co/github-coding-agent-tracker";
+  const attrText = "by @jphme / ellamind.com";
   const attrSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${finalW}" height="${ATTR_H}">
     <text x="${MARGIN}" y="38" font-family="Helvetica Neue, Arial, sans-serif"
           font-size="28" fill="#A0A8B8">${attrText}</text>
