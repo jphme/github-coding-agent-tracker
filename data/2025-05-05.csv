@@ -1,8 +1,8 @@
 date,query,count
-2025-05-05,total,12215455
-2025-05-05,claude,785
+2025-05-05,total,3854725
+2025-05-05,claude,776
 2025-05-05,copilot,0
-2025-05-05,devin,490
+2025-05-05,devin,488
 2025-05-05,aider,2
 2025-05-05,codex,0
 2025-05-05,opencode,1
@@ -10,3 +10,6 @@ date,query,count
 2025-05-05,cursor_bg,0
 2025-05-05,jules,42
 2025-05-05,amazonq,14
+2025-05-05,amp,0
+2025-05-05,windsurf,0
+2025-05-05,junie,0

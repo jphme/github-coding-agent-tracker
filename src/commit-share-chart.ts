@@ -23,45 +23,71 @@ const OTHER_AGENT_KEYS = [
   "junie",
 ];
 
+interface DailyRow {
+  date: string;
+  total: number;
+  claude: number;
+  other: number;
+}
+
 interface StackedPoint {
   date: string;
   category: string;
   percentage: number;
 }
 
-function loadData(): StackedPoint[] {
+function loadDailyRows(): DailyRow[] {
   const files = globSync("data/*.csv");
-  const points: StackedPoint[] = [];
+  const rows: DailyRow[] = [];
 
   for (const file of files) {
     const content = readFileSync(file, "utf-8");
-    const rows = new Map<string, number>();
+    const rowMap = new Map<string, number>();
     let date = "";
 
     for (const line of content.trim().split("\n").slice(1)) {
       const [d, query, countStr] = line.split(",");
       date = d;
-      rows.set(query, parseInt(countStr, 10));
+      rowMap.set(query, parseInt(countStr, 10));
     }
 
     // Filter: only dates from October 2025 onwards
     if (date < "2025-10-01") continue;
 
-    const total = rows.get("total");
+    const total = rowMap.get("total");
     if (!total || total === 0) continue;
 
-    const claudeSum = CLAUDE_KEYS.reduce((sum, k) => sum + (rows.get(k) ?? 0), 0);
-    const otherSum = OTHER_AGENT_KEYS.reduce((sum, k) => sum + (rows.get(k) ?? 0), 0);
+    const claudeSum = CLAUDE_KEYS.reduce((sum, k) => sum + (rowMap.get(k) ?? 0), 0);
+    const otherSum = OTHER_AGENT_KEYS.reduce((sum, k) => sum + (rowMap.get(k) ?? 0), 0);
 
-    points.push({ date, category: "Claude Code", percentage: (claudeSum / total) * 100 });
+    rows.push({ date, total, claude: claudeSum, other: otherSum });
+  }
+
+  rows.sort((a, b) => a.date.localeCompare(b.date));
+  return rows;
+}
+
+function loadData(): StackedPoint[] {
+  const dailyRows = loadDailyRows();
+  const WINDOW = 7;
+  const points: StackedPoint[] = [];
+
+  for (let i = WINDOW - 1; i < dailyRows.length; i++) {
+    const window = dailyRows.slice(i - WINDOW + 1, i + 1);
+    const totalSum = window.reduce((s, r) => s + r.total, 0);
+    if (totalSum === 0) continue;
+    const claudeSum = window.reduce((s, r) => s + r.claude, 0);
+    const otherSum = window.reduce((s, r) => s + r.other, 0);
+    const date = dailyRows[i].date;
+
+    points.push({ date, category: "Claude Code", percentage: (claudeSum / totalSum) * 100 });
     points.push({
       date,
       category: "Other Agents (without Codex)",
-      percentage: (otherSum / total) * 100,
+      percentage: (otherSum / totalSum) * 100,
     });
   }
 
-  points.sort((a, b) => a.date.localeCompare(b.date) || a.category.localeCompare(b.category));
   return points;
 }
 
