@@ -23,11 +23,11 @@ The following charts and table are updated automatically by GitHub Actions runni
 
 10-day rolling average, as a % of all public commits on GitHub of the top 3 coding agents (by detected commit count).
 
-| Agent           |                      | %        |
-| --------------- | -------------------- | -------- |
-| JetBrains Junie | ████████████████████ | 1031.27% |
-| Claude Code     |                      | 9.70%    |
-| Cursor          |                      | 0.93%    |
+| Agent           |                      | %       |
+| --------------- | -------------------- | ------- |
+| JetBrains Junie | ████████████████████ | 962.98% |
+| Claude Code     |                      | 10.01%  |
+| Cursor          |                      | 0.93%   |
 
 <!-- recent-table-end -->
 
