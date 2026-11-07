@@ -25,9 +25,9 @@ The following charts and table are updated automatically by GitHub Actions runni
 
 | Agent           |                      | %       |
 | --------------- | -------------------- | ------- |
-| JetBrains Junie | ████████████████████ | 154.31% |
-| Claude Code     | ██                   | 18.95%  |
-| Cursor          |                      | 0.53%   |
+| JetBrains Junie | ████████████████████ | 157.07% |
+| Claude Code     | ██                   | 18.98%  |
+| Cursor          |                      | 0.52%   |
 
 <!-- recent-table-end -->
 
